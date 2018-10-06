@@ -62,13 +62,39 @@
      ((null? l) 0)
      ((atom? (car l))
       (cond
-       ((eq? (car l) a) (add1 (occur* a (cdr l)))))))))
+       ((eq? (car l) a) (add1 (occur* a (cdr l))))
+       (else (occur* a (cdr l)))))
+     (else (+ (occur* a (car l)) (occur* a (cdr l)))))))
 
 (define subst*
-  (lambda (new old l)))
+  (lambda (new old l)
+    (cond
+     ((null? l) '())
+     ((atom? (car l))
+      (cond
+       ((eq? (car l) old) (cons new (subst* new old (cdr l))))
+       (else (cons (car l) (subst* new old (cdr l))))))
+     (else (cons (subst* new old (car l)) (subst* new old (cdr l)))))))
+
+(subst* 'birds 'cats '(We love (cats (cats)) cats (cats)))
 
 (define member*
-  (lambda (a l)))
+  (lambda (a l)
+    (cond
+     ((null? l) #f)
+     ((atom? (car l))
+      (or (eq? (car l) a) (member* a (cdr l))))
+     (else (or (member*  a (car l)) (member* a (cdr l)))))))
+
+(member* 'dog '(cats cats cat dog))
+(member* 'chips '((potato) (chips ((with) fish) (chips))))
 
 (define leftmost
-  (lambda (l)))
+  (lambda (l)
+    (cond
+     ((atom? (car l)) (car l))
+     (else (leftmost (car l))))))
+
+(leftmost '(((hot) (tuna (and))) cheese))
+(leftmost '(((() four)) 17 (seventeen)))
+(leftmost '())
