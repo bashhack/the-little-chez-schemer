@@ -119,17 +119,6 @@
 ;;      (else
 ;;       (and (eqlist? (car l1) (car l2)) (eqlist? (cdr l1) (cdr l2)))))))
 
-(define equal?
-  (lambda (s1 s2)
-    (cond
-     ((and (atom? s1) (atom? s2)) (eqan? s1 s2))
-     ((or (atom? s1) (atom? s2)) #f)
-     (else (eqlist? s1 s2)))))
-
-(equal? 15 15)
-(equal? 15 '())
-(equal? '((bird) cat (dog (dog))) '((bird) cat (dog (dog))))
-
 (define eqlist?
   (lambda (l1 l2)
     (cond
@@ -141,6 +130,17 @@
 (eqlist? '(cat dog dog) '(cat dog dog))
 (eqlist? '() '())
 (eqlist? '(15) '(5 3))
+
+(define equal?
+  (lambda (s1 s2)
+    (cond
+     ((and (atom? s1) (atom? s2)) (eqan? s1 s2))
+     ((or (atom? s1) (atom? s2)) #f)
+     (else (eqlist? s1 s2)))))
+
+(equal? 15 15)
+(equal? 15 '())
+(equal? '((bird) cat (dog (dog))) '((bird) cat (dog (dog))))
 
 ;; (define rember
 ;;   (lambda (s l)
@@ -162,6 +162,7 @@
 ;;             ((equal? (car l) s) (cdr l))
 ;;             (else (cons (car l) (rember s (cdr l)))))))))
 
+;; `rember' implemented to take an s-expression and a list of s-expressions
 (define rember
   (lambda (s l)
     (cond
