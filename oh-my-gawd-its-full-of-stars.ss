@@ -97,4 +97,76 @@
 
 (leftmost '(((hot) (tuna (and))) cheese))
 (leftmost '(((() four)) 17 (seventeen)))
-(leftmost '())
+
+(define eqan?
+ (lambda (a1 a2)
+   (cond
+    ((and (number? a1) (number? a2)) (= a1 a2))
+    ((or (number? a1) (number? a2)) #f)
+    (else (eq? a1 a2)))))
+
+(eqan? 15 3)
+(eqan? 'dog 'dog)
+
+;; (define eqlist?
+;;   (lambda (l1 l2)
+;;     (cond
+;;      ((and (null? l1) (null? l2)) #t)
+;;      ((or (null? l1) (null? l2)) #f)
+;;      ((and (atom? (car l1)) (atom? (car l2)))
+;;       (and (eqan? (car l1) (car l2)) (eqlist? (cdr l1) (cdr l2))))
+;;      ((or (atom? (car l1)) (atom? (car l2))) #f)
+;;      (else
+;;       (and (eqlist? (car l1) (car l2)) (eqlist? (cdr l1) (cdr l2)))))))
+
+(define equal?
+  (lambda (s1 s2)
+    (cond
+     ((and (atom? s1) (atom? s2)) (eqan? s1 s2))
+     ((or (atom? s1) (atom? s2)) #f)
+     (else (eqlist? s1 s2)))))
+
+(equal? 15 15)
+(equal? 15 '())
+(equal? '((bird) cat (dog (dog))) '((bird) cat (dog (dog))))
+
+(define eqlist?
+  (lambda (l1 l2)
+    (cond
+     ((and (null? l1) (null? l2)) #t)
+     ((or (null? l1) (null? l2)) #f)
+     (else
+      (and (equal? (car l1) (car l2)) (equal? (cdr l1) (cdr l2)))))))
+
+(eqlist? '(cat dog dog) '(cat dog dog))
+(eqlist? '() '())
+(eqlist? '(15) '(5 3))
+
+;; (define rember
+;;   (lambda (s l)
+;;     (cond
+;;      ((null? l) '())
+;;      ((atom? (car l))
+;;       (cond
+;;        ((equal? (car l) s) (cdr l))
+;;        (else (cons (car l) (rember s (cdr l))))))
+;;      (else (cond
+;;             ((equal? (car l) s) (cdr l))
+;;             (else (cons (car l) (rember s (cdr l)))))))))
+
+;; (define rember
+;;   (lambda (s l)
+;;     (cond
+;;      ((null? l) '())
+;;      (else (cond
+;;             ((equal? (car l) s) (cdr l))
+;;             (else (cons (car l) (rember s (cdr l)))))))))
+
+(define rember
+  (lambda (s l)
+    (cond
+     ((null? l) '())
+     ((equal? (car l) s) (cdr l))
+     (else (cons (car l) (rember s (cdr l)))))))
+
+(rember '(dog) '((dog) dog))
