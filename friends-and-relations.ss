@@ -91,3 +91,23 @@
 (subset? '(5 hamburgers 2 pieces of fried chicken and light duckling wings) '(5 chicken wings))
 
 (subset?  '(5 chicken wings) '(5 hamburgers 2 pieces of fried chicken and light duckling wings))
+
+(define eqset?
+  (lambda (set1 set2)
+    (and (subset? set1 set2) (subset? set2 set1))))
+
+(eqset? '(5 chicken wings 4 apple pies) '(5 chicken wings 4 apple pie))
+
+(define intersect?
+  (lambda (set1 set2)
+    (cond
+     ((null? set1) #f)
+     (else (or (member? (car set1) set2) (intersect? (cdr set1) set2))))))
+
+(intersect? '(chicken in wings) '(5 ducks in a row))
+
+(define intersect
+  (lambda (set1 set2)
+    ((null? set1) '())
+    ...))
+(intersect '(stewed tomatoes and macaroni) '(macaroni and cheese))
