@@ -108,6 +108,41 @@
 
 (define intersect
   (lambda (set1 set2)
-    ((null? set1) '())
-    ...))
+    (cond
+      ((null? set1) '())
+      ((member? (car set1) set2)
+       (cons (car set1) (intersect (cdr set1) set2)))
+      (else (intersect (cdr set1) set2)))))
+
 (intersect '(stewed tomatoes and macaroni) '(macaroni and cheese))
+
+(define union
+  (lambda (set1 set2)
+    (cond
+     ((null? set1) set2)
+     ((member? (car set1) set2)
+      (union (cdr set1) set2))
+     (else (cons (car set1) (union (cdr set1) set2))))))
+
+(union '(macaroni cat bird dog and cheese) '(macaroni and cheese))
+
+(define xxx
+  (lambda (set1 set2)
+    (cond
+     ((null? set1) '())
+     ((member? (car set1) set2)
+      (xxx (cdr set1) set2))
+     (else (cons (car set1) (xxx (cdr set1) set2))))))
+
+(xxx '(stewed tomatoes and macaroni casserole) '(macaroni and cheese))
+
+(define intersectall
+  (lambda (l-set)
+    (cond
+     ((null? (cdr l-set)) (car l-set))
+     (else (intersect (car l-set) (intersectall (cdr l-set)))))))
+
+(intersectall '((a b c) (d e f b g a) (i j b q a)))
+
+(define a-pair?
+  #t)
