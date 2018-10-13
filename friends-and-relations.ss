@@ -145,4 +145,95 @@
 (intersectall '((a b c) (d e f b g a) (i j b q a)))
 
 (define a-pair?
-  #t)
+  (lambda (x)
+    (cond
+     ((atom? x) #f)
+     ((null? x) #f)
+     ((null? (cdr x)) #f)
+     ((null? (cdr (cdr x))) #t)
+     (else #f))))
+
+(define first
+  (lambda (p)
+    (car p)))
+
+(define second
+  (lambda (p)
+    (car (cdr p))))
+
+(define build
+  (lambda (s1 s2)
+    (cons s1 (cons s2 '()))))
+
+(define third
+  (lambda (p)
+    (car (cdr (cdr p)))))
+
+(first '(dog cat))
+(second '(dog cat))
+(third '(dog cat bird))
+(build '(1 bird 3) '(4 5 dog))
+
+(define firsts
+  (lambda (l)
+    (cond
+     ((null? l) '())
+     (else (cons (car (car l)) (firsts (cdr l)))))))
+
+(define fun?
+  (lambda (rel)
+    (set? (firsts rel))))
+
+(fun? '((bird cat) (dog fish)))
+(fun? '((bird cat) (dog cat) (dog will fail)))
+
+(define revrel
+  (lambda (rel)
+    (cond
+     ((null? rel) '())
+     (else (cons (build (second (car rel)) (first (car rel))) (revrel (cdr rel)))))))
+
+(revrel '((bird cat) (dog fish)))  ;; '((cat bird) (fish dog))
+
+(define revpair
+  (lambda (p)
+    (build (second p) (first p))))
+
+(define revrel-alt
+  (lambda (rel)
+    (cond
+     ((null? rel) '())
+     (else (cons (revpair (car rel)) (revrel-alt (cdr rel)))))))
+
+(revrel-alt '((bird cat) (dog fish)))  ;; '((cat bird) (fish dog))
+
+(define firsts
+  (lambda (l)
+    (cond
+     ((null? l) '())
+     (else (cons (first (car l)) (firsts (cdr l)))))))
+
+(define seconds
+  (lambda (l)
+    (cond
+     ((null? l) '())
+     (else (cons (second (car l)) (seconds (cdr l)))))))
+
+(firsts '((grape raisin) (plum prune) (stewed prune)))
+(seconds '((grape raisin) (plum prune) (stewed prune)))
+
+(define fullfun?
+  (lambda (fun)
+    (set? (seconds fun))))
+
+(fullfun? '((grape raisin) (plum prune) (stewed prune)))
+(fullfun? '((bird cat) (dog fish) (dog fish)))
+(fullfun? '((bird cat) (dog fish) (dog snake)))
+
+;; Equivalent to `fullfun?`
+(define one-to-one?
+  (lambda (fun)
+    (fun? (revrel fun))))
+
+(one-to-one? '((bird cat) (dog fish) (dog fish)))
+(one-to-one? '((bird cat) (dog fish) (ferret snake)))
