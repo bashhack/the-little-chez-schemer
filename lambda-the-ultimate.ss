@@ -26,7 +26,7 @@
 (define eq?-c
  (lambda (a)
    (lambda (x)
-     (eq? x a))))
+     (eq? a x))))
 
 (define eq?-salad (eq?-c 'salad))
 (eq?-salad 'salad)
@@ -93,6 +93,7 @@
 (define insertL (insert-g seqL))
 (define insertR (insert-g seqR))
 
+;; ...using the seqL/seqR func definitions in insertL/insertR - better!
 (define insertL
   (insert-g
    (lambda (new old lat)
@@ -106,4 +107,158 @@
 (insertR 'dog 'bird '(bird))
 (insertL 'dog 'bird '(bird))
 
+(define subst
+  (lambda (new old lat)
+    (cond
+     ((null? lat) '())
+     ((eq? (car lat) old) (cons new (cdr lat)))
+     (else (cons (car lat) (subst new old (cdr lat)))))))
 
+(subst 'mouse 'bird '(bird mouse bird))
+
+(define seqS
+  (lambda (new old lat)
+    (cons new lat)))
+
+(define subst (insert-g seqS))
+
+(subst 'bird 'mouse '(bird mouse bird))
+
+(define seqrem
+  (lambda (new old lat)
+    lat))
+
+;; using insert-g to define rember
+(define yyy
+  (lambda (a lat)
+    ((insert-g seqrem) #f a lat)))
+
+(yyy 'sausage '(pizza with sausage and bacon))
+
+(define operator
+  (lambda (aexp)
+    (car aexp)))
+
+(define 1st-sub-exp
+  (lambda (aexp)
+    (car (cdr aexp))))
+
+(define 2nd-sub-exp
+  (lambda (aexp)
+    (car (cdr (cdr aexp)))))
+
+(define value
+  (lambda (nexp)
+    (cond
+     ((atom? nexp) nexp)
+     ((eq? (operator nexp) '+)
+      (+ (value (1st-sub-exp nexp))
+         (value (2nd-sub-exp nexp))))
+     ((eq? (operator nexp) '*)
+      (* (value (1st-sub-exp nexp))
+         (value (2nd-sub-exp nexp))))
+     (else
+      (expt (value (1st-sub-exp nexp))
+            (value (2nd-sub-exp nexp)))))))
+
+(value '(+ 1 2))
+(value '(* 2 2))
+(value '(expt 2 6))
+
+(define atom-to-function
+  (lambda (x)
+    (cond
+     ((eq? '+ x) +)
+     ((eq? '* x) *)
+     (else expt))))
+
+(define value
+  (lambda (nexp)
+    (cond
+     ((atom? nexp) nexp)
+     (else
+      ((atom-to-function (operator nexp))
+       (value (1st-sub-exp nexp))
+       (value (2nd-sub-exp nexp)))))))
+
+(value '(+ 1 2))
+(value '(* 2 2))
+(value '(expt 2 6))
+
+(define multirember
+  (lambda (a lat)
+    (cond
+     ((null? lat) '())
+     ((eq? (car lat) a) (multirember a (cdr lat)))
+     (else (cons (car lat) (multirember a (cdr lat)))))))
+
+(multirember 'bird '(cat mouse bird mouse bird cat bird))
+
+(define multirember-f
+  (lambda (test?)
+    (lambda (a lat)
+      (cond
+       ((null? lat) '())
+       ((test? (car lat) a) ((multirember-f test?) a (cdr lat)))
+       (else (cons (car lat) ((multirember-f test?) a (cdr lat))))))))
+
+((multirember-f eq?) 'bird '(cat mouse bird mouse bird cat bird))
+
+(define multirember-eq? (multirember-f eq?))
+
+(multirember-eq? 'bird '(cat mouse bird mouse bird cat bird))
+
+(define eq?-c
+  (lambda (x)
+    (lambda (y)
+      (eq? x y))))
+
+;; ...what if we combine the test func with the value to test against?
+(define eq?-bird
+  (eq?-c 'bird))
+
+(define multiremberT
+  (lambda (test?)
+    (lambda (lat)
+      (cond
+       ((null? lat) '())
+       ((test? (car lat)) ((multiremberT test?) (cdr lat)))
+       (else (cons (car lat) ((multiremberT test?) (cdr lat))))))))
+
+((multiremberT eq?-bird) '(cat mouse bird mouse bird cat bird))
+
+(define multirember&co
+  (lambda (a lat col)
+    (cond
+     ((null? lat) (col '() '()))
+     ((eq? (car lat) a)
+      (multirember&co a (cdr lat)
+                      (lambda (newlat seen)
+                        (display "newlat: ")
+                        (newline)
+                        (display newlat)
+                        (newline)
+                        (display "seen: ")
+                        (newline)
+                        (display newlat)
+                        (newline)
+                        (col newlat (cons (car lat) seen)))))
+     (else
+      (multirember&co a (cdr lat)
+                      (lambda (newlat seen)
+                        (col (cons (car lat) newlat) seen)))))))
+
+(define 2nd-of-pair-empty-list
+  (lambda (x y)
+    (display "x was: ")
+    (display x)
+    (newline)
+    (display "y was: ")
+    (display y)
+    (newline)
+    (null? y)))
+
+(multirember&co 'tuna '(strawberries tuna and swordfish) 2nd-of-pair-empty-list)
+(multirember&co 'tuna '() 2nd-of-pair-empty-list)
+(multirember&co 'tuna '(tuna) 2nd-of-pair-empty-list)
+(multirember&co 'tuna '(space tuna) 2nd-of-pair-empty-list)
