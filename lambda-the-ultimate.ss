@@ -248,7 +248,7 @@
                       (lambda (newlat seen)
                         (col (cons (car lat) newlat) seen)))))))
 
-(define 2nd-of-pair-empty-list
+(define a-friend
   (lambda (x y)
     (display "x was: ")
     (display x)
@@ -258,7 +258,118 @@
     (newline)
     (null? y)))
 
-(multirember&co 'tuna '(strawberries tuna and swordfish) 2nd-of-pair-empty-list)
-(multirember&co 'tuna '() 2nd-of-pair-empty-list)
-(multirember&co 'tuna '(tuna) 2nd-of-pair-empty-list)
-(multirember&co 'tuna '(space tuna) 2nd-of-pair-empty-list)
+;; (multirember&co 'tuna '(strawberries tuna and swordfish) a-friend)
+;; (multirember&co 'tuna '() a-friend)
+;; (multirember&co 'tuna '(tuna) a-friend)
+;; (multirember&co 'tuna '(space tuna) a-friend)
+
+;; ...behind the scenes:
+;; given an atom a and a list of atoms lat, the lat is iterated over -
+;; a list ls1 is created where some predicate test? against the atom a is false,
+;; al second list s2 is created where the predicate test? against the atom a is true,
+;; finally the lists ls1 and ls2 are passed to a func f
+;; (where f is a col or collector function, known as a continuation)
+;;
+;; Ex.
+;; eq? '2 '(2 3 4) => '(3 4) '(2) => (col '(3 4) '(2))
+
+(define new-friend
+  (lambda (newlat seen)
+    (col newlat (cons (car lat) seen))))
+
+(define new-friend
+  (lambda (newlat seen)
+    (a-friend newlat (cons 'tuna seen))))
+
+(multirember&co 'tuna '(strawberries tuna and swordfish) new-friend)
+(multirember&co 'tuna '() new-friend)
+(multirember&co 'tuna '(tuna) new-friend)
+(multirember&co 'tuna '(space tuna) new-friend)
+(multirember&co 'tuna '(and tuna) a-friend)
+
+(define latest-friend
+  (lambda (newlat seen)
+    (a-friend (cons 'and newlat) seen)))
+
+(multirember&co 'tuna '(tuna) a-friend)
+(multirember&co 'tuna '(tuna) new-friend)
+(multirember&co 'tuna '(tuna) latest-friend)
+
+(define last-friend
+  (lambda (x y)
+    (length x)))
+
+(multirember&co 'tuna '(strawberries tuna and swordfish) last-friend)
+
+(define multiinsertL
+  (lambda (new old lat)
+    (cond
+     ((null? lat) '())
+     ((eq? (car lat) old) (cons new (cons old (multiinsertL new old (cdr lat)))))
+     (else (cons (car lat) (multiinsertL new old (cdr lat)))))))
+
+(multiinsertL 'bird 'mouse '(mouse cat mouse cat))
+
+(define multiinsertR
+  (lambda (new old lat)
+    (cond
+     ((null? lat) '())
+     ((eq? (car lat) old) (cons old (cons new (multiinsertR new old (cdr lat)))))
+     (else (cons (car lat) (multiinsertR new old (cdr lat)))))))
+
+(multiinsertR 'bird 'mouse '(mouse cat mouse cat))
+
+(define multiinsertLR
+  ;; Inserts new to the left of oldL and to the right of oldR
+  ;; in lat if oldL and oldR are different
+  (lambda (new oldL oldR lat)
+    (cond
+     ((null? lat) '())
+     ((eq? (car lat) oldL)
+      (cons new (cons oldL (multiinsertLR new oldL oldR (cdr lat)))))
+     ((eq? (car lat) oldR)
+      (cons oldR (cons new (multiinsertLR new oldL oldR (cdr lat)))))
+     (else (cons (car lat) (multiinsertLR new oldL oldR (cdr lat)))))))
+
+(multiinsertLR 'bird 'mouse 'cat '(mouse fish mouse dog cat mouse))
+
+(define multiinsertLR&co
+  (lambda (new oldL oldR lat col)
+    (cond
+     ((null? lat)
+      (col '() 0 0))
+     ((eq? (car lat) oldL)
+      (multiinsertLR&co new oldL oldR (cdr lat)
+                        (lambda (newlat L R) (col (cons new (cons oldL newlat)) (add1 L) R))))
+     ((eq? (car lat) oldR)
+      (multiinsertLR&co new oldL oldR (cdr lat)
+                        (lambda (newlat L R) (col (cons oldR (cons new newlat)) L (add1 R)))))
+     (else (multiinsertLR&co new oldL oldR (cdr lat) (lambda (newlat L R) (col (cons (car lat) newlat) L R)))))))
+
+(multiinsertLR&co 'salty 'fish 'chips '(chips and fish or fish and chips) list)
+
+(define even?
+  (lambda (n)
+    (= (* (div n 2) 2) n)))
+
+(define even?-alt
+  (lambda (n)
+    (= (remainder n 2) 0)))
+
+(eq? (even?-alt 0) (even? 0))
+(eq? (even?-alt 1) (even? 1))
+(eq? (even?-alt 2) (even? 2))
+(eq? (even?-alt 250832) (even? 250832))
+(eq? (even?-alt 2508329) (even? 2508329))
+
+(define evens-only*
+  (lambda (l)
+    (cond
+     ((null? l) '())
+     ((atom? (car l))
+      (cond
+       ((even? (car l)) (cons (car l) (evens-only* (cdr l))))
+       (else (evens-only* (cdr l)))))
+     (else (cons (evens-only* (car l)) (evens-only* (cdr l)))))))
+
+(evens-only* '((9 1 2 8) 3 10 ((9 9) 7 6) 2))
