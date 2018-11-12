@@ -373,3 +373,34 @@
      (else (cons (evens-only* (car l)) (evens-only* (cdr l)))))))
 
 (evens-only* '((9 1 2 8) 3 10 ((9 9) 7 6) 2))
+
+(define evens-only*&co
+  (lambda (l col)
+    (cond
+     ((null? l)
+      (col '() 1 0))
+     ((atom? (car l))
+      (cond
+       ((even? (car l))
+        (evens-only*&co (cdr l)
+                        (lambda (newl product sum)
+                          (col (cons (car l) newl) (* (car l) product) sum))))
+       (else
+        (evens-only*&co (cdr l)
+                        (lambda (newl product sum)
+                          (col newl product (+ (car l) sum)))))))
+     (else
+      (evens-only*&co (car l)
+                      (lambda (newl product sum)
+                        (evens-only*&co (cdr l)
+                                        (lambda (newlcdr productcdr sumcdr)
+                                          (col (cons newl newlcdr)
+                                               (* product productcdr)
+                                               (+ sum sumcdr))))))))))
+
+(define the-last-friend
+  (lambda (newl product sum)
+    (cons sum (cons product newl))))
+
+;; returns the sum of odds, the product of the evens and the list of evens
+(evens-only*&co '((9 1 2 8) 3 10 ((9 9) 7 6) 2) the-last-friend)  ;; (38 1920 (2 8) 10 (() 6) 2)
