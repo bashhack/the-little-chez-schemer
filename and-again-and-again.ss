@@ -350,7 +350,7 @@
        (else (add1 ((make-length eternity) (cdr l))))))))
  '(apples))
 
-;; (3) apply the second function starting at line 343 (lambda (make-length) (lambda (l) (cond ((null? l) 0) (else (add1 ((make-length eternity) (cdr l))))))) as the arg at 338, returning
+;; (3) apply the second function starting at line 346 (lambda (make-length) (lambda (l) (cond ((null? l) 0) (else (add1 ((make-length eternity) (cdr l))))))) as the arg at 341, returning
 ((lambda (l)
    (cond
     ((null? l) 0)
@@ -368,7 +368,7 @@
        (cdr l))))))
  '(apples))
 
-;; (4) pass '(apples) as the arg l at line 351
+;; (4) pass '(apples) as the arg l at line 354
 (cond
  ((null? '(apples)) 0)
  (else
@@ -384,7 +384,7 @@
      eternity)
     (cdr '(apples))))))
 
-;; (5) line 370 evaluates to #f (see 386), else branch should be evaluated
+;; (5) line 373 evaluates to #f (see 389), else branch should be evaluated
 (cond
  (#f 0)
  (else
@@ -428,7 +428,7 @@
    eternity)
   (cdr '(apples))))
 
-;; (8) eternity is substituted with its definition at line 438
+;; (8) eternity is substituted with its definition at line 441
 (add1
  (((lambda (make-length)
      (lambda (l)
@@ -441,7 +441,7 @@
    (lambda (f) (eternity f)))
   (cdr '(apples))))
 
-;; (9) the definition of eternity is passed as the argument make-length at line 430
+;; (9) the definition of eternity is passed as the argument make-length at line 433
 (add1
  ((lambda (l)
     (cond
@@ -453,7 +453,7 @@
         (cdr l))))))
   (cdr '(apples))))
 
-;; (10) the cdr of '(apples) at line 451 is evaluated to '() at line 463
+;; (10) the cdr of '(apples) at line 454 is evaluated to '() at line 466
 (add1
  ((lambda (l)
     (cond
@@ -465,7 +465,7 @@
         (cdr l))))))
   '()))
 
-;; (11) '() from 463 is passed as the arg l at line 455, leaving the cond, passing the empty list to lines 468 and 473
+;; (11) '() from 466 is passed as the arg l at line 458, leaving the cond, passing the empty list to lines 471 and 476
 (add1
  (cond
   ((null? '()) 0)
@@ -475,7 +475,7 @@
       eternity)
      (cdr '()))))))
 
-;; (12) the null? check at line 468 evaluates to #t, ignoring the else branch
+;; (12) the null? check at line 471 evaluates to #t, ignoring the else branch
 (add1
  (cond
   (#t 0)
@@ -489,7 +489,7 @@
 (add1 0) ;; 1
 
 ;; starting from this - the natural next step to abstract this further
-;; is to replace the call to eternity at line 499
+;; is to replace the call to eternity at line 500
 ((lambda (make-length)
    (make-length make-length))
  (lambda (make-length)
@@ -678,6 +678,7 @@
 
 ;; we now have an inner call that returns a function, as we expected
 
+;; 1
 ((lambda (make-length)
    (make-length make-length))
  (lambda (make-length)
@@ -690,6 +691,289 @@
            (length (cdr l)))))))
     (lambda (x)
       ((make-length make-length) x)))))
+
+;; 2
+((lambda (make-length)
+   ((lambda (length)
+      (lambda (l)
+        (cond
+         ((null? l) 0)
+         (else
+          (add1
+           (length (cdr l)))))))
+    (lambda (x)
+      ((make-length make-length) x))))
+ (lambda (make-length)
+   ((lambda (length)
+      (lambda (l)
+        (cond
+         ((null? l) 0)
+         (else
+          (add1
+           (length (cdr l)))))))
+    (lambda (x)
+      ((make-length make-length) x)))))
+
+;; 3
+((lambda (length)
+    (lambda (l)
+      (cond
+       ((null? l) 0)
+       (else (add1 (length (cdr l)))))))
+  (lambda (x)
+    (((lambda (make-length)
+       ((lambda (length)
+          (lambda (l)
+            (cond
+             ((null? l) 0)
+             (else (add1 (length (cdr l)))))))
+        (lambda (x)
+          ((make-length make-length) x))))
+     (lambda (make-length)
+       ((lambda (length)
+          (lambda (l)
+            (cond
+             ((null? l) 0)
+             (else (add1 (length (cdr l)))))))
+        (lambda (x)
+          ((make-length make-length) x))))) x)))
+
+;; 4
+(lambda (l)
+  (cond
+   ((null? l) 0)
+   (else (add1 ((lambda (x)
+                  (((lambda (make-length)
+                      ((lambda (length)
+                         (lambda (l)
+                           (cond
+                            ((null? l) 0)
+                            (else (add1 (length (cdr l)))))))
+                       (lambda (x)
+                         ((make-length make-length) x))))
+                    (lambda (make-length)
+                      ((lambda (length)
+                         (lambda (l)
+                           (cond
+                            ((null? l) 0)
+                            (else (add1 (length (cdr l)))))))
+                       (lambda (x)
+                         ((make-length make-length) x))))) x)) (cdr l))))))
+
+;; 5
+(lambda (l)
+  (cond
+   ((null? l) 0)
+   (else (add1 ((lambda (x)
+                  (((lambda (make-length)
+                      ((lambda (length)
+                         (lambda (l)
+                           (cond
+                            ((null? l) 0)
+                            (else (add1 (length (cdr l)))))))
+                       (lambda (x)
+                         ((make-length make-length) x))))
+                    (lambda (make-length)
+                      ((lambda (length)
+                         (lambda (l)
+                           (cond
+                            ((null? l) 0)
+                            (else (add1 (length (cdr l)))))))
+                       (lambda (x)
+                         ((make-length make-length) x))))) x)) (cdr l))))))
+
+;; 6 (adding in the value here for clarity... let's use '(apples))
+((lambda (l)
+  (cond
+   ((null? l) 0)
+   (else (add1 ((lambda (x)
+                  (((lambda (make-length)
+                      ((lambda (length)
+                         (lambda (l)
+                           (cond
+                            ((null? l) 0)
+                            (else (add1 (length (cdr l)))))))
+                       (lambda (x)
+                         ((make-length make-length) x))))
+                    (lambda (make-length)
+                      ((lambda (length)
+                         (lambda (l)
+                           (cond
+                            ((null? l) 0)
+                            (else (add1 (length (cdr l)))))))
+                       (lambda (x)
+                         ((make-length make-length) x))))) x)) (cdr l)))))) '(apples))
+
+;; 7
+(cond
+ ((null? '(apples)) 0) ; #f
+ (else (add1 ((lambda (x)
+                (((lambda (make-length)
+                    ((lambda (length)
+                       (lambda (l)
+                         (cond
+                          ((null? l) 0)
+                          (else (add1 (length (cdr l)))))))
+                     (lambda (x)
+                       ((make-length make-length) x))))
+                  (lambda (make-length)
+                    ((lambda (length)
+                       (lambda (l)
+                         (cond
+                          ((null? l) 0)
+                          (else (add1 (length (cdr l)))))))
+                     (lambda (x)
+                       ((make-length make-length) x))))) x)) '())))) ; (cdr l) replaced with '()
+
+;; 8
+(add1 ((lambda (x)
+         (((lambda (make-length)
+             ((lambda (length)
+                (lambda (l)
+                  (cond
+                   ((null? l) 0)
+                   (else (add1 (length (cdr l)))))))
+              (lambda (x)
+                ((make-length make-length) x))))
+           (lambda (make-length)
+             ((lambda (length)
+                (lambda (l)
+                  (cond
+                   ((null? l) 0)
+                   (else (add1 (length (cdr l)))))))
+              (lambda (x)
+                ((make-length make-length) x))))) x)) '()))
+
+;; 9
+(add1
+ (((lambda (make-length)
+     ((lambda (length)
+        (lambda (l)
+          (cond
+           ((null? l) 0)
+           (else (add1 (length (cdr l)))))))
+      (lambda (x)
+        ((make-length make-length) x))))
+   (lambda (make-length)
+     ((lambda (length)
+        (lambda (l)
+          (cond
+           ((null? l) 0)
+           (else (add1 (length (cdr l)))))))
+      (lambda (x)
+        ((make-length make-length) x)))))
+  '()))
+
+;; 10
+(add1
+ (((lambda (length)
+     (lambda (l)
+       (cond
+        ((null? l) 0)
+        (else (add1 (length (cdr l)))))))
+   (lambda (x)
+     (((lambda (make-length)
+         ((lambda (length)
+            (lambda (l)
+              (cond
+               ((null? l) 0)
+               (else (add1 (length (cdr l)))))))
+          (lambda (x)
+            ((make-length make-length) x))))
+       (lambda (make-length)
+         ((lambda (length)
+            (lambda (l)
+              (cond
+               ((null? l) 0)
+               (else (add1 (length (cdr l)))))))
+          (lambda (x)
+            ((make-length make-length) x)))))
+      x)))
+  '()))
+
+;; 11
+(add1
+ ((lambda (l)
+    (cond
+     ((null? l) 0)
+     (else (add1
+            (lambda (x)
+              (((lambda (make-length)
+                  ((lambda (length)
+                     (lambda (l)
+                       (cond
+                        ((null? l) 0)
+                        (else (add1 (length (cdr l)))))))
+                   (lambda (x)
+                     ((make-length make-length) x))))
+                (lambda (make-length)
+                  ((lambda (length)
+                     (lambda (l)
+                       (cond
+                        ((null? l) 0)
+                        (else (add1 (length (cdr l)))))))
+                   (lambda (x)
+                     ((make-length make-length)
+                      x)))))
+               x))
+            (cdr l)))))
+  '()))
+
+;; 12
+(add1
+ ((lambda (l)
+    (cond
+     ((null? l) 0)
+     (else (add1
+            (lambda (x)
+              (((lambda (make-length)
+                  ((lambda (length)
+                     (lambda (l)
+                       (cond
+                        ((null? l) 0)
+                        (else (add1 (length (cdr l)))))))
+                   (lambda (x)
+                     ((make-length make-length) x))))
+                (lambda (make-length)
+                  ((lambda (length)
+                     (lambda (l)
+                       (cond
+                        ((null? l) 0)
+                        (else (add1 (length (cdr l)))))))
+                   (lambda (x)
+                     ((make-length make-length)
+                      x)))))
+               x))
+            (cdr l)))))
+  '()))
+
+;; 13
+(add1
+ ((lambda (l)
+    (cond
+     ((null? '()) 0) ; l is substituted with '(), returning true for null?, returning 0, returning (add1 0)
+     (else (add1
+            (lambda (x)
+              (((lambda (make-length)
+                  ((lambda (length)
+                     (lambda (l)
+                       (cond
+                        ((null? l) 0)
+                        (else (add1 (length (cdr l)))))))
+                   (lambda (x)
+                     ((make-length make-length) x))))
+                (lambda (make-length)
+                  ((lambda (length)
+                     (lambda (l)
+                       (cond
+                        ((null? l) 0)
+                        (else (add1 (length (cdr l)))))))
+                   (lambda (x)
+                     ((make-length make-length)
+                      x)))))
+               x))
+            (cdr l)))))
+  '()))
 
 ;; we could take the function that looks like our original length (lines 684 - 690),
 ;; and extract that - giving it a name

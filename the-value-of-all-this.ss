@@ -740,7 +740,7 @@
      (4 5 6)))
    ;; initial-table
    (lambda (name)
-     (car '()))))
+     (car '())))
 
 (define lookup-in-table
   (lambda (name table table-f)
